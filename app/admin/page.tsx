@@ -72,7 +72,10 @@ export default function AdminPage() {
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-          <button onClick={logout} className="text-sm text-blue-600 hover:underline">Logout</button>
+          <div className="flex gap-4 items-center">
+            <a href="/calculator" className="text-sm bg-gray-800 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700">Open Calculator</a>
+            <button onClick={logout} className="text-sm text-blue-600 hover:underline">Logout</button>
+          </div>
         </div>
 
         {/* Invite Form */}
