@@ -1,53 +1,51 @@
-import postgres from 'postgres';
+import { createClient } from '@supabase/supabase-js';
 
-const sql = postgres(process.env.DATABASE_URL!, { ssl: 'require' });
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
 
 export async function initDb() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      name TEXT,
-      role TEXT NOT NULL DEFAULT 'member',
-      invite_token TEXT,
-      invite_accepted BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
+  // Table is created via Supabase dashboard or migration — no-op here
 }
 
 export async function getUserByEmail(email: string) {
-  const rows = await sql`SELECT * FROM users WHERE email = ${email}`;
-  return rows[0] || null;
+  const { data } = await supabase.from('users').select('*').eq('email', email).single();
+  return data || null;
 }
 
 export async function getUserByToken(token: string) {
-  const rows = await sql`SELECT * FROM users WHERE invite_token = ${token}`;
-  return rows[0] || null;
+  const { data } = await supabase.from('users').select('*').eq('invite_token', token).single();
+  return data || null;
 }
 
 export async function createUser(email: string, name: string, role: string, token: string) {
-  const rows = await sql`
-    INSERT INTO users (email, name, role, invite_token)
-    VALUES (${email}, ${name}, ${role}, ${token})
-    RETURNING *
-  `;
-  return rows[0];
+  const { data } = await supabase
+    .from('users')
+    .insert({ email, name, role, invite_token: token })
+    .select()
+    .single();
+  return data;
 }
 
 export async function acceptInvite(token: string) {
-  const rows = await sql`
-    UPDATE users SET invite_accepted = TRUE
-    WHERE invite_token = ${token}
-    RETURNING *
-  `;
-  return rows[0];
+  const { data } = await supabase
+    .from('users')
+    .update({ invite_accepted: true })
+    .eq('invite_token', token)
+    .select()
+    .single();
+  return data;
 }
 
 export async function getAllUsers() {
-  return sql`SELECT id, email, name, role, invite_accepted, created_at FROM users ORDER BY created_at DESC`;
+  const { data } = await supabase
+    .from('users')
+    .select('id, email, name, role, invite_accepted, created_at')
+    .order('created_at', { ascending: false });
+  return data || [];
 }
 
 export async function deleteUser(id: number) {
-  await sql`DELETE FROM users WHERE id = ${id}`;
+  await supabase.from('users').delete().eq('id', id);
 }
