@@ -22,7 +22,13 @@ export async function POST(req: NextRequest) {
 
   const token = randomBytes(32).toString('hex');
   await createUser(email, name, 'member', token);
-  await sendInviteEmail(email, name, token);
+
+  try {
+    await sendInviteEmail(email, name, token);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `User created but email failed: ${message}` }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

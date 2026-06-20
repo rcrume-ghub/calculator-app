@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
 export async function sendInviteEmail(to: string, name: string, token: string) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const loginLink = `${appUrl}/auth/accept?token=${token}`;
+  const loginLink = `${appUrl}/api/auth/accept?token=${token}`;
 
   await transporter.sendMail({
     from: `"Calculator App" <${process.env.GMAIL_USER}>`,
